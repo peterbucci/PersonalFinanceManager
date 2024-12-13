@@ -136,8 +136,8 @@ The project satisfies the following requirements:
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/yourusername/financemanager.git
-   cd financemanager
+   git clone https://github.com/peterbucci/PersonalFinanceManager.git
+   cd PersonalFinanceManager
    ```
 
 2. **Open the Project in Qt Creator:**
@@ -172,7 +172,7 @@ The project satisfies the following requirements:
      - Click the **Run** button.
    - **From the Terminal**:
      ```bash
-     ./financemanager
+     ./PersonalFinanceManager
      ```
 
 3. **Login or Sign Up**:
