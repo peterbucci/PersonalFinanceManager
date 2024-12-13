@@ -1,0 +1,49 @@
+
+# Ignore the build directory
+build/
+
+# Ignore Qt Creator user-specific files
+*.pro.user
+*.pro.user.*
+
+# Ignore generated Makefiles
+Makefile
+Makefile.Debug
+Makefile.Release
+
+# Ignore object files and binaries
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+*.exe
+
+# Ignore moc, uic, and rcc generated files
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Ignore debug and release folders
+debug/
+release/
+
+# Ignore temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+*.swp
+
+# Ignore IDE-specific files (if applicable)
+.vscode/
+.idea/
+
+# Ignore macOS-specific files
+.DS_Store
+
+# Ignore Windows-specific files
+Thumbs.db
+Desktop.ini
