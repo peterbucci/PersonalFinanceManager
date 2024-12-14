@@ -199,11 +199,14 @@ The project satisfies the following requirements:
    - Enter details and save. Your transaction is recorded in the database.
 
 4. **Filtering & Viewing Data:**
-   - Use the **View Transactions** or **Graph View** screens to filter by category and subcategory.
+   - Use the **View Transactions** or **View Graph** screens to filter by category and subcategory.
    - Analyze trends over time via charts.
 
 5. **Updating Profile:**
    - In the **Settings** page, update your username, password, and personal details as needed.
+
+6. **Logging Out:**
+   - Users can log out to return to the login screen.
 
 ---
 
@@ -219,6 +222,3 @@ The project satisfies the following requirements:
 - **`GraphView.cpp/.h`**: Implements data visualization logic using Qt Charts with filtering capabilities.
 - **`TransactionForm.cpp/.h`**: Provides the interface for adding new transactions.
 - **`Settings.cpp/.h`**: Implements the Settings UI, allowing users to update their account details.
-
-
-
