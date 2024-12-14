@@ -13,6 +13,7 @@ TransactionForm::TransactionForm(QWidget *parent)
     ui->dateEdit->setDate(QDate::currentDate());
 
     const QStringList predefinedCategories = {
+        "Pay",
         "Groceries",
         "Rent",
         "Utilities",

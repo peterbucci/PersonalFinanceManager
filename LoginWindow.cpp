@@ -8,13 +8,15 @@
 #include <QSettings>
 #include "user.h"
 #include "userlogin.h"
+#include "PasswordManager.h"
 
 LoginWindow::LoginWindow() {}
 
 LoginWindow::LoginWindow(QSqlDatabase db, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::LoginWindow),
-    m_db(db)
+    m_db(db),
+    m_passwordManager(new PasswordManager(this)) // Initialize PasswordManager
 {
     ui->setupUi(this);
 
@@ -38,9 +40,10 @@ LoginWindow::~LoginWindow()
 void LoginWindow::on_logInPushButton_clicked()
 {
     QString username = ui->usernameLineEdit->text().trimmed();
-    QString password = ui->passwordLineEdit->text().trimmed();
+    QString plainPassword = ui->passwordLineEdit->text().trimmed();
+    QString password = m_passwordManager->hashPassword(plainPassword); // Hash the password
 
-    if (username.isEmpty() || password.isEmpty()) {
+    if (username.isEmpty() || plainPassword.isEmpty()) { // Check plainPassword
         QMessageBox::warning(this, "Error", "Username and password cannot be empty.");
         return;
     }
@@ -48,7 +51,7 @@ void LoginWindow::on_logInPushButton_clicked()
     QSqlQuery query(m_db);
     query.prepare("SELECT loginID, userID, accessLevel FROM UserLogin WHERE username=? AND password=?");
     query.addBindValue(username);
-    query.addBindValue(password);
+    query.addBindValue(password); // Use hashed password
 
     if (!query.exec()) {
         QMessageBox::critical(this, "Error", "Database query error: " + query.lastError().text());
@@ -122,7 +125,9 @@ void LoginWindow::forgotPasswordClicked()
     }
 
     if (query.next()) {
-        QString newPassword = "temp123";
+        QString tempPlainPassword = "temp123";
+        QString newPassword = m_passwordManager->hashPassword(tempPlainPassword); // Hash the temp password
+
         QSqlQuery updateQuery(m_db);
         updateQuery.prepare("UPDATE UserLogin SET password=? WHERE username=?");
         updateQuery.addBindValue(newPassword);
@@ -133,7 +138,7 @@ void LoginWindow::forgotPasswordClicked()
             return;
         }
 
-        QMessageBox::information(this, "Password Reset", "Your new password is: " + newPassword);
+        QMessageBox::information(this, "Password Reset", "Your new password is: " + tempPlainPassword);
     } else {
         QMessageBox::warning(this, "Error", "Username does not exist.");
     }
@@ -144,7 +149,7 @@ void LoginWindow::saveCredentials()
     QSettings settings("Crumpet", "Unit13RA");
     if (ui->rememberMeCheckBox->isChecked()) {
         settings.setValue("username", ui->usernameLineEdit->text());
-        settings.setValue("password", ui->passwordLineEdit->text());
+        settings.setValue("password", ui->passwordLineEdit->text()); // Store plain password
     } else {
         settings.remove("username");
         settings.remove("password");

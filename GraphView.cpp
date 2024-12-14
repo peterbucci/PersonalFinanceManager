@@ -180,39 +180,45 @@ void GraphView::applyFiltering()
     bool showIncome = ui->incomeRadioButton->isChecked();
     bool showExpenses = ui->expensesRadioButton->isChecked();
 
-    // Filter transactions by category and subcategory
-    std::vector<Transaction> filtered = allTransactions;
-
-    if (!currentCategoryFilter.isEmpty()) {
-        filtered.erase(std::remove_if(filtered.begin(), filtered.end(),
-                                      [this](const Transaction &t) {
-                                          return QString::fromStdString(t.getCategory()) != currentCategoryFilter;
-                                      }),
-                       filtered.end());
-    }
-
-    if (!currentSubCategoryFilter.isEmpty()) {
-        filtered.erase(std::remove_if(filtered.begin(), filtered.end(),
-                                      [this](const Transaction &t) {
-                                          return !QString::fromStdString(t.getSubcategory())
-                                          .contains(currentSubCategoryFilter, Qt::CaseInsensitive);
-                                      }),
-                       filtered.end());
-    }
-
-    // Aggregate by day but only for the selected type (income or expense)
+    // Initialize daily totals
     std::map<QString, double> dailyTotals;
 
-    for (const auto &t : filtered) {
-        bool isIncome = t.isIncomeTransaction();
-        if ((showIncome && isIncome) || (showExpenses && !isIncome)) {
-            QString dateKey = QString::fromStdString(t.getDate());
-            dailyTotals[dateKey] += t.calculateNetAmount();
+    // Initialize dataPoints with reserve if possible
+    QVector<QPointF> dataPoints;
+    dataPoints.reserve(allTransactions.size());
+
+    // Variables to track min and max for setData
+    double minY = std::numeric_limits<double>::max();
+    double maxY = std::numeric_limits<double>::lowest();
+
+    // Filter and aggregate in a single pass
+    for (const auto &t : allTransactions) {
+        // Apply category filter
+        if (!currentCategoryFilter.isEmpty()) {
+            QString category = QString::fromStdString(t.getCategory());
+            if (category != currentCategoryFilter)
+                continue;
         }
+
+        // Apply subcategory filter
+        if (!currentSubCategoryFilter.isEmpty()) {
+            QString subcategory = QString::fromStdString(t.getSubcategory());
+            if (!subcategory.contains(currentSubCategoryFilter, Qt::CaseInsensitive))
+                continue;
+        }
+
+        // Determine transaction type
+        bool isIncome = t.isIncomeTransaction();
+        if (!((showIncome && isIncome) || (showExpenses && !isIncome))) {
+            continue;
+        }
+
+        // Aggregate by day
+        QString dateKey = QString::fromStdString(t.getDate());
+        dailyTotals[dateKey] += t.calculateNetAmount();
     }
 
-    // Convert dailyTotals into dataPoints
-    QVector<QPointF> dataPoints;
+    // Convert dailyTotals into dataPoints and track min/max
     for (const auto &entry : dailyTotals) {
         QDateTime dt = QDateTime::fromString(entry.first, "yyyy-MM-dd");
         if (!dt.isValid()) continue;
@@ -221,6 +227,10 @@ void GraphView::applyFiltering()
         double val = entry.second;
         if (val > 0) {
             dataPoints.append(QPointF(ms, val));
+
+            // Update min and max Y
+            if (val < minY) minY = val;
+            if (val > maxY) maxY = val;
         }
     }
 
@@ -230,7 +240,6 @@ void GraphView::applyFiltering()
     });
 
     // Update chart title
-    // Determine transaction type string
     QString typeStr = showIncome ? "Income" : "Expenses";
     QString categoryStr = currentCategoryFilter.isEmpty() ? "All" : currentCategoryFilter;
     QString title = categoryStr + " " + typeStr;
@@ -241,7 +250,7 @@ void GraphView::applyFiltering()
 
     // Set the Tick Count on the X-Axis
     int uniqueDateCount = static_cast<int>(dailyTotals.size());
-    if (uniqueDateCount < 2) uniqueDateCount = 2;
+    uniqueDateCount = std::max(uniqueDateCount, 2);
     axisX->setTickCount(uniqueDateCount);
     axisX->setFormat("yyyy-MM-dd");
     axisX->setLabelsAngle(-45);
@@ -259,10 +268,10 @@ void GraphView::applyFiltering()
         }
     }
 
-    setData(dataPoints);
+    setData(dataPoints, minY, maxY);
 }
 
-void GraphView::setData(const QVector<QPointF> &dataPoints)
+void GraphView::setData(const QVector<QPointF> &dataPoints, double minY, double maxY)
 {
     // Clear existing data
     incomeLineSeries->clear();
@@ -292,22 +301,11 @@ void GraphView::setData(const QVector<QPointF> &dataPoints)
         return;
     }
 
-    qreal minX = dataPoints.first().x();
-    qreal maxX = dataPoints.first().x();
-    qreal minY = dataPoints.first().y();
-    qreal maxY = dataPoints.first().y();
-
-    for (const QPointF &point : dataPoints) {
-        if (point.x() < minX) minX = point.x();
-        if (point.x() > maxX) maxX = point.x();
-        if (point.y() < minY) minY = point.y();
-        if (point.y() > maxY) maxY = point.y();
-    }
-
+    // Calculate range and padding
     double range = maxY;
     if (range < 0) range = 0;
     double padding = range * 0.1;
-    if (padding < 1.0) padding = 1.0;
+    padding = std::max(padding, 1.0);
     double maxValForAxis = range + padding;
 
     int roundedMax = 0;

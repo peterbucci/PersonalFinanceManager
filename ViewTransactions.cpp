@@ -2,7 +2,6 @@
 #include "ui_ViewTransactions.h"
 #include <QEvent>
 #include <QMouseEvent>
-#include <algorithm>
 #include <QHeaderView>
 
 ViewTransactions::ViewTransactions(QWidget *parent)
@@ -17,6 +16,7 @@ ViewTransactions::ViewTransactions(QWidget *parent)
     ui->label->installEventFilter(this);
 
     const QStringList predefinedCategories = {
+        "Pay",
         "Groceries",
         "Rent",
         "Utilities",
@@ -85,30 +85,43 @@ void ViewTransactions::updateFilters()
 
 void ViewTransactions::applyFiltering()
 {
-    // Filter transactions
-    std::vector<Transaction> filtered = allTransactions;
+    bool hasCategoryFilter = !currentCategoryFilter.isEmpty();
+    bool hasSubCategoryFilter = !currentSubCategoryFilter.isEmpty();
+    bool filtersApplied = hasCategoryFilter || hasSubCategoryFilter;
 
-    if (!currentCategoryFilter.isEmpty()) {
-        filtered.erase(std::remove_if(filtered.begin(), filtered.end(),
-                                      [this](const Transaction &t) {
-                                          return QString::fromStdString(t.getCategory()) != currentCategoryFilter;
-                                      }), filtered.end());
+    // Preallocate space based on allTransactions size to improve performance
+    std::vector<Transaction> filtered;
+    filtered.reserve(allTransactions.size());
+
+    // Apply both category and subcategory filters in one loop
+    for (const auto &t : allTransactions) {
+        // Apply category filter if active
+        if (hasCategoryFilter) {
+            // Convert category once and reuse
+            const QString category = QString::fromStdString(t.getCategory());
+            if (category != currentCategoryFilter)
+                continue; // Skip transactions that do not match the category
+        }
+
+        // Apply subcategory filter if active
+        if (hasSubCategoryFilter) {
+            // Convert subcategory once and reuse
+            const QString subcategory = QString::fromStdString(t.getSubcategory());
+            if (!subcategory.contains(currentSubCategoryFilter, Qt::CaseInsensitive))
+                continue; // Skip transactions that do not match the subcategory
+        }
+
+        // If transaction passes all active filters, add it to the filtered list
+        filtered.emplace_back(t);
     }
 
-    if (!currentSubCategoryFilter.isEmpty()) {
-        filtered.erase(std::remove_if(filtered.begin(), filtered.end(),
-                                      [this](const Transaction &t) {
-                                          return !QString::fromStdString(t.getSubcategory())
-                                          .contains(currentSubCategoryFilter, Qt::CaseInsensitive);
-                                      }), filtered.end());
-    }
-
-    bool filtersApplied = (!currentCategoryFilter.isEmpty() || !currentSubCategoryFilter.isEmpty());
-
-    // If filters applied: no balance column, show TOTAL row
-    // If no filters: show balance column, no TOTAL row
+    // Populate the table with the filtered transactions
+    // Parameters:
+    // - showBalance: Display balance column if no filters are applied
+    // - showTotalRow: Display total row if any filter is applied
     populateViewTable(filtered, !filtersApplied, filtersApplied);
 }
+
 
 void ViewTransactions::populateViewTable(const std::vector<Transaction> &transactions, bool showBalance, bool showTotalRow)
 {
