@@ -350,6 +350,7 @@ void MainWindow::updateNavVisibility()
     }
 }
 
+
 bool MainWindow::updateUserInDatabase(const QString &firstName, const QString &lastName, const QString &position,
                                       const QString &username, const QString &password)
 {
@@ -370,11 +371,18 @@ bool MainWindow::updateUserInDatabase(const QString &firstName, const QString &l
         return false;
     }
 
-    // Update UserLogin info too
+    // Update UserLogin info conditionally based on whether a new password was provided
     QSqlQuery loginQuery(m_db);
-    loginQuery.prepare("UPDATE UserLogin SET username=?, password=? WHERE userID=?");
-    loginQuery.addBindValue(username);
-    loginQuery.addBindValue(password);
+    if (!password.isEmpty()) {
+        // If password is provided, update both username and password
+        loginQuery.prepare("UPDATE UserLogin SET username=?, password=? WHERE userID=?");
+        loginQuery.addBindValue(username);
+        loginQuery.addBindValue(password); // Hashed password
+    } else {
+        // If password is empty, update only the username
+        loginQuery.prepare("UPDATE UserLogin SET username=? WHERE userID=?");
+        loginQuery.addBindValue(username);
+    }
     loginQuery.addBindValue(currentUser.getUserId());
 
     if (!loginQuery.exec()) {
@@ -395,12 +403,11 @@ void MainWindow::populateSettingsWithCurrentUser()
 
     if (query.exec() && query.next()) {
         QString username = query.value("username").toString();
-        QString password = query.value("password").toString();
         QString firstname = query.value("firstname").toString();
         QString lastname = query.value("lastname").toString();
         QString position = query.value("position").toString();
 
-        settings->setUserData(username, password, firstname, lastname, position);
+        settings->setUserData(username, firstname, lastname, position);
     }
     else {
         qWarning() << "Failed to load user data for settings:" << query.lastError().text();

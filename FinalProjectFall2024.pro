@@ -6,6 +6,7 @@ SOURCES += \
     GraphView.cpp \
     Ledger.cpp \
     LoginWindow.cpp \
+    PasswordManager.cpp \
     SignUpWindow.cpp \
     Transaction.cpp \
     TransactionForm.cpp \
@@ -21,6 +22,7 @@ HEADERS += \
     Ledger.h \
     LoginWindow.h \
     MainWindow.h \
+    PasswordManager.h \
     SignUpWindow.h \
     Transaction.h \
     TransactionForm.h \

@@ -1,20 +1,23 @@
+
 # Personal Finance Manager
 
-## Latest Updates (As of December 12, 2024)
+## Latest Updates (As of December 14, 2024)
+
+- **Password Security Enhancements:**
+  - **Password Hashing:**
+    - Implemented password hashing using `#include <QCryptographicHash>`.
+    - Introduced `PasswordManager.h` and `PasswordManager.cpp` to handle password hashing and validation logic.
+    - All passwords are now securely hashed before being stored in the database.
+  - **Password Validation:**
+    - Added robust password and confirm password validation in both the **Settings** and **Sign-Up** pages.
+    - Password strength validation ensures users create strong passwords.
+    - Confirm Password field must match the entered Password before allowing updates or registration.
 
 - **Dashboard Removed:**
   - The main dashboard has been removed for now. After logging in, the default view is now the **View Transactions** screen.
 
 - **UI Reset Functionality:**
   - **`resetUI` Methods:** Added `resetUI` methods to all UI classes (Log In, Sign Up, View Transactions, View Graph, Add Transaction, and Settings). These methods reset the UI back to default when navigating away from the screen, ensuring a consistent user experience.
-
-- **User Interface Enhancements:**
-  - **Login & Sign Up Screens:** Users can create new accounts, log in with existing credentials, and recover passwords if forgotten.
-  - **View Transactions Screen:** The default view after logging in. Users can see a comprehensive list of their transactions.
-  - **Add Transaction Form:** A dedicated form that allows adding new income or expense transactions with optional tax withholding.
-  - **View Graph Screen (Qt Charts):** A GraphView is implemented to visualize income and expense trends over time, with category and subcategory filters.
-  - **Settings Screen:** Users can update their account details (username, password, name, and position).
-
 ---
 
 ## Table of Contents
@@ -31,7 +34,6 @@
   - [Building the Project](#building-the-project)
   - [Running the Application](#running-the-application)
 - [Usage](#usage)
-- [Code Structure](#code-structure)
 
 ---
 
@@ -47,6 +49,7 @@ The Personal Finance Manager is a graphical budget and expense tracker designed 
 
 - **User Accounts & Authentication:**
   - Full sign-up, login, and logout processes supported.
+  - Passwords are securely hashed using `QCryptographicHash` and managed via `PasswordManager`.
   - Credentials and user details are stored securely in a SQLite database.
 
 - **Transaction Management:**
@@ -59,6 +62,7 @@ The Personal Finance Manager is a graphical budget and expense tracker designed 
 
 - **Settings & Profile Management:**
   - Users can update their username, password, and personal details (first name, last name, position).
+  - Enhanced password validation and secure password handling.
 
 ### What's Not Working
 
@@ -113,7 +117,7 @@ The project satisfies the following requirements:
 
 6. **User Authentication:**
    - Full sign-up and login process integrated.
-   - Credentials validated against database records.
+   - Passwords are securely hashed using `QCryptographicHash` and managed via `PasswordManager`.
 
 7. **Documentation:**
    - Code documentation improved with user and installation instructions.
@@ -179,7 +183,7 @@ The project satisfies the following requirements:
 
 ---
 
-## Usage
+# Usage
 
 1. **User Registration & Login:**
    - Run the application and create a new user account.
@@ -207,18 +211,3 @@ The project satisfies the following requirements:
 
 6. **Logging Out:**
    - Users can log out to return to the login screen.
-
----
-
-## Code Structure
-
-- **`MainWindow.cpp/.h`**: Sets up the main application window, manages navigation between different views, and maintains the currently logged-in user and their ledger.
-- **`LoginWindow.cpp/.h`**: Handles the user login interface, including "Remember Me" and "Forgot Password" options.
-- **`SignUpWindow.cpp/.h`**: Manages the sign-up process for new users.
-- **`User.cpp/.h` & `UserLogin.cpp/.h`**: Represents a user and their login credentials.
-- **`Ledger.cpp/.h`**: Manages a collection of transactions and maintains a running balance.
-- **`Transaction.cpp/.h`**: Represents individual financial transactions and provides database read/write methods.
-- **`ViewTransactions.cpp/.h`**: Displays a detailed list of all transactions with filtering capabilities.
-- **`GraphView.cpp/.h`**: Implements data visualization logic using Qt Charts with filtering capabilities.
-- **`TransactionForm.cpp/.h`**: Provides the interface for adding new transactions.
-- **`Settings.cpp/.h`**: Implements the Settings UI, allowing users to update their account details.

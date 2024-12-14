@@ -93,11 +93,19 @@ private:
     void applyFiltering();
 
     /**
-     * @brief Sets the data points for the chart based on either income or expense transactions.
-     * This function updates the axes and the single visible series based on the provided data points.
-     * @param dataPoints A vector of QPointF representing data points (either income or expense).
+     * @brief Updates the chart with the provided data points and adjusts the Y-axis range.
+     *
+     * This function sets the data points for the chart based on either income or expense transactions.
+     * It updates the visible line and scatter series, configures the Y-axis range using the provided
+     * minimum and maximum Y-values, and ensures the chart is properly scaled and rendered.
+     *
+     * @param dataPoints A QVector of QPointF representing the data points (either income or expense).
+     *                  Each QPointF contains the X (time in milliseconds since epoch) and Y (amount) coordinates.
+     * @param minY       The minimum Y-value from the data points, used to determine the lower bound of the Y-axis.
+     * @param maxY       The maximum Y-value from the data points, used to calculate the upper bound of the Y-axis with padding.
      */
-    void setData(const QVector<QPointF> &dataPoints);
+    void setData(const QVector<QPointF> &dataPoints, double minY, double maxY);
+
 
     /**
          * @brief Handles hover events over scatter plot points to display tooltips.

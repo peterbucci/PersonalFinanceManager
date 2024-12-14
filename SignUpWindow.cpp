@@ -6,6 +6,7 @@
 #include <QSqlError>
 #include "user.h"
 #include "userlogin.h"
+#include "PasswordManager.h"
 
 static int getAccessLevel(const QString &position) {
     QString pos = position.toLower();
@@ -17,7 +18,10 @@ static int getAccessLevel(const QString &position) {
 SignUpWindow::SignUpWindow(QSqlDatabase db, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SignUpWindow),
-    m_db(db)
+    m_db(db),
+    m_passwordManager(new PasswordManager(this)),
+    m_passwordStrength(0),
+    m_passwordsMatch(false)
 {
     ui->setupUi(this);
     ui->positionComboBox->addItems(QStringList() << "User" << "Developer" << "Admin");
@@ -26,6 +30,8 @@ SignUpWindow::SignUpWindow(QSqlDatabase db, QWidget *parent) :
     ui->logInLink->installEventFilter(this);
 
     this->setWindowTitle("Sign Up");
+
+    setupPasswordValidation();
 }
 
 SignUpWindow::~SignUpWindow()
@@ -33,21 +39,63 @@ SignUpWindow::~SignUpWindow()
     delete ui;
 }
 
+void SignUpWindow::setupPasswordValidation()
+{
+    // Connect password fields to PasswordManager
+    connect(ui->passwordLineEdit, &QLineEdit::textChanged, m_passwordManager, &PasswordManager::setPassword);
+    connect(ui->confirmPasswordLineEdit, &QLineEdit::textChanged, m_passwordManager, &PasswordManager::setConfirmPassword);
+
+    // Connect PasswordManager signals to local slots
+    connect(m_passwordManager, &PasswordManager::strengthChanged, this, &SignUpWindow::onPasswordStrengthChanged);
+    connect(m_passwordManager, &PasswordManager::matchStatusChanged, this, &SignUpWindow::onPasswordMatchStatusChanged);
+}
+
+void SignUpWindow::onPasswordStrengthChanged(int strength)
+{
+    m_passwordStrength = strength;
+    // Handle UI update here
+}
+
+void SignUpWindow::onPasswordMatchStatusChanged(bool match)
+{
+    m_passwordsMatch = match;
+    // Handle UI update here
+}
+
 void SignUpWindow::on_signUpPushButton_clicked()
 {
     QString username = ui->usernameLineEdit->text().trimmed();
-    QString password = ui->passwordLineEdit->text().trimmed();
+    QString password = ui->passwordLineEdit->text();
+    QString confirmPassword = ui->confirmPasswordLineEdit->text();
     QString firstname = ui->firstNameLineEdit->text().trimmed();
     QString lastname = ui->lastNameLineEdit->text().trimmed();
     QString position = ui->positionComboBox->currentText();
 
+    // Validate required fields
     if (username.isEmpty() || password.isEmpty() || firstname.isEmpty() || lastname.isEmpty()) {
         QMessageBox::warning(this, "Error", "All fields are required.");
         return;
     }
 
+    // Check if password and confirm password match
+    if (!m_passwordsMatch) {
+        QMessageBox::warning(this, "Password Mismatch", "The password and confirm password fields do not match.");
+        return;
+    }
+
+    // Check password strength
+    if (m_passwordStrength < 60) { // 60 is the minimum acceptable strength
+        QMessageBox::warning(this, "Weak Password", "Please choose a stronger password.");
+        return;
+    }
+
+    // Hash the password before storing
+    QString hashedPassword = m_passwordManager->hashPassword(password);
+
+    // Create a new User object
     User newUser(0, firstname, lastname, position);
 
+    // Insert the new user into the User table
     QSqlQuery query(m_db);
     if (!query.prepare("INSERT INTO User (firstname, lastname, position) VALUES (?, ?, ?)")) {
         QMessageBox::critical(this, "Error", "Failed to prepare user insert: " + query.lastError().text());
@@ -66,8 +114,9 @@ void SignUpWindow::on_signUpPushButton_clicked()
     newUser.setUserId(userId);
     int accessLevel = getAccessLevel(newUser.getPosition());
 
-    UserLogin newUserLogin(0, username, password, accessLevel, newUser.getUserId());
+    UserLogin newUserLogin(0, username, hashedPassword, accessLevel, newUser.getUserId());
 
+    // Insert the new user login into the UserLogin table
     QSqlQuery query2(m_db);
     if (!query2.prepare("INSERT INTO UserLogin (username, password, accessLevel, userID) VALUES (?, ?, ?, ?)")) {
         QMessageBox::critical(this, "Error", "Failed to prepare login insert: " + query2.lastError().text());
@@ -79,7 +128,7 @@ void SignUpWindow::on_signUpPushButton_clicked()
     query2.addBindValue(newUserLogin.getUserId());
 
     if (!query2.exec()) {
-        QMessageBox::warning(this, "Error", "Username may already exist. " + query2.lastError().text());
+        QMessageBox::warning(this, "Error", "Username already exists. " + query2.lastError().text());
         return;
     }
 
@@ -100,7 +149,10 @@ void SignUpWindow::resetUI()
 {
     ui->usernameLineEdit->clear();
     ui->passwordLineEdit->clear();
+    ui->confirmPasswordLineEdit->clear();
     ui->firstNameLineEdit->clear();
     ui->lastNameLineEdit->clear();
     ui->positionComboBox->setCurrentIndex(0);
+    m_passwordStrength = 0;
+    m_passwordsMatch = false;
 }

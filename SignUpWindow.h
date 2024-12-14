@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QSqlDatabase>
+#include "PasswordManager.h"
 
 namespace Ui {
 class SignUpWindow;
@@ -50,8 +51,25 @@ signals:
 private slots:
     /**
      * @brief Handles the sign up button click.
+     *
+     * This slot validates user input, ensuring that all required fields are filled,
+     * and that the password and confirm password fields match. If validation passes,
+     * it inserts the new user into the database. Appropriate error messages are displayed
+     * if validation fails or if database operations encounter issues.
      */
     void on_signUpPushButton_clicked();
+
+    /**
+     * @brief Slot to handle updates to password strength.
+     * @param strength The new password strength value.
+     */
+    void onPasswordStrengthChanged(int strength);
+
+    /**
+     * @brief Slot to handle updates to password match status.
+     * @param match True if passwords match, false otherwise.
+     */
+    void onPasswordMatchStatusChanged(bool match);
 
 protected:
     /**
@@ -63,8 +81,16 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
+    /**
+     * @brief Sets up connections for password validation.
+     */
+    void setupPasswordValidation();
+
     Ui::SignUpWindow *ui; ///< Pointer to the UI components of SignUpWindow.
     QSqlDatabase m_db; ///< Database connection reference.
+    PasswordManager *m_passwordManager; ///< Manages password hashing and validation
+    int m_passwordStrength; ///< Current password strength
+    bool m_passwordsMatch; ///< Current password match status
 };
 
 #endif // SIGNUPWINDOW_H

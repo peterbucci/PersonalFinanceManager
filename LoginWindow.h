@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QSqlDatabase>
+#include "PasswordManager.h"
 
 namespace Ui {
 class LoginWindow;
@@ -86,6 +87,7 @@ private:
 
     Ui::LoginWindow *ui; ///< Pointer to the UI components of LoginWindow.
     QSqlDatabase m_db; ///< Database connection reference.
+    PasswordManager *m_passwordManager; ///< Manages password hashing
 };
 
 #endif // LOGINWINDOW_H
