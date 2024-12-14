@@ -6,14 +6,14 @@
   - The main dashboard has been removed for now. After logging in, the default view is now the **View Transactions** screen.
 
 - **UI Reset Functionality:**
-  - **`resetUI` Methods:** Added `resetUI` methods to all UI classes (Log In, Sign Up, View Transactions, Graph View, Transaction Form, and Settings). These methods reset the UI back to default when navigating away from the screen, ensuring a consistent user experience.
+  - **`resetUI` Methods:** Added `resetUI` methods to all UI classes (Log In, Sign Up, View Transactions, View Graph, Add Transaction, and Settings). These methods reset the UI back to default when navigating away from the screen, ensuring a consistent user experience.
 
 - **User Interface Enhancements:**
-  - **Login & Sign Up Windows:** Users can create new accounts, log in with existing credentials, and recover passwords if forgotten.
-  - **View Transactions Screen:** Now serves as the default view after logging in. Users can see a comprehensive list of their transactions.
-  - **Transaction Form:** A dedicated form allows adding new income or expense transactions with optional tax withholding.
-  - **Graphs & Charts (Qt Charts):** A GraphView is implemented to visualize income and expense trends over time, with category and subcategory filters.
-  - **Settings Page:** Users can update their account details (username, password, name, and position).
+  - **Login & Sign Up Screens:** Users can create new accounts, log in with existing credentials, and recover passwords if forgotten.
+  - **View Transactions Screen:** The default view after logging in. Users can see a comprehensive list of their transactions.
+  - **Add Transaction Form:** A dedicated form that allows adding new income or expense transactions with optional tax withholding.
+  - **View Graph Screen (Qt Charts):** A GraphView is implemented to visualize income and expense trends over time, with category and subcategory filters.
+  - **Settings Screen:** Users can update their account details (username, password, name, and position).
 
 ---
 
@@ -47,19 +47,18 @@ The Personal Finance Manager is a graphical budget and expense tracker designed 
 
 - **User Accounts & Authentication:**
   - Full sign-up, login, and logout processes supported.
-  - Credentials and user details stored securely in a SQLite database.
+  - Credentials and user details are stored securely in a SQLite database.
 
 - **Transaction Management:**
   - Users can add income and expense transactions.
   - Each transaction is recorded with Date, Category, Subcategory, and Amount.
-  - **View Transactions Screen:** The default view after logging in shows a detailed list of all transactions with filtering capabilities.
 
 - **Data Visualization:**
   - Integrated Qt Charts to display income and expense trends over time.
   - Graph filtering by category and subcategory supported.
 
 - **Settings & Profile Management:**
-  - Users can update their username, password, and personal details (firstname, lastname, position).
+  - Users can update their username, password, and personal details (first name, last name, position).
 
 ### What's Not Working
 
@@ -117,8 +116,7 @@ The project satisfies the following requirements:
    - Credentials validated against database records.
 
 7. **Documentation:**
-   - Code documentation improved.
-   - User and installation completed.
+   - Code documentation improved with user and installation instructions.
 
 ---
 
@@ -185,17 +183,19 @@ The project satisfies the following requirements:
 
 1. **User Registration & Login:**
    - Run the application and create a new user account.
-   - Log in using your credentials to access the **View Transactions** screen (default view).
+   - Navigate to the Sign-up page and create a new account.
+   - Log in using your credentials to access the **View Transactions** screen.
 
 2. **Navigating the Application:**
    - Use the navigation combo box to move between the following screens:
      - **View Transactions**
-     - **Graph View**
-     - **Transaction Form**
+     - **View Graph**
+     - **Add Transaction**
      - **Settings**
+     - **Logout**
 
 3. **Adding Transactions:**
-   - Open the transaction form from the navigation options.
+   - Open the transaction form from the navigation menu.
    - Enter details and save. Your transaction is recorded in the database.
 
 4. **Filtering & Viewing Data:**
