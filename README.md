@@ -18,7 +18,6 @@
 
 - **UI Reset Functionality:**
   - **`resetUI` Methods:** Added `resetUI` methods to all UI classes (Log In, Sign Up, View Transactions, View Graph, Add Transaction, and Settings). These methods reset the UI back to default when navigating away from the screen, ensuring a consistent user experience.
-
 ---
 
 ## Table of Contents
