@@ -17,20 +17,17 @@ class SignUpWindow : public QWidget
     Q_OBJECT
 
 public:
+    /**
+     * @brief Constructs the SignUpWindow with a specified database connection.
+     * @param db The database connection reference.
+     * @param parent The parent widget.
+     */
+    explicit SignUpWindow(QSqlDatabase db, QWidget *parent = nullptr);
 
     /**
      * @brief Default constructor for SignUpWindow.
-     * Initializes member variables with default values.
      */
-    SignUpWindow() {}
-
-    /**
-     * @brief Constructs the SignUpWindow.
-     * @param db The database connection reference.
-     * @param parent The parent widget.
-     * @return A SignUpWindow object.
-     */
-    explicit SignUpWindow(QSqlDatabase db, QWidget *parent = nullptr);
+    SignUpWindow();
 
     /**
      * @brief Destructs the SignUpWindow.
@@ -61,7 +58,7 @@ private slots:
 
     /**
      * @brief Slot to handle updates to password strength.
-     * @param strength The new password strength value.
+     * @param strength The new strength value.
      */
     void onPasswordStrengthChanged(int strength);
 
@@ -86,11 +83,12 @@ private:
      */
     void setupPasswordValidation();
 
-    Ui::SignUpWindow *ui; ///< Pointer to the UI components of SignUpWindow.
-    QSqlDatabase m_db; ///< Database connection reference.
-    PasswordManager *m_passwordManager; ///< Manages password hashing and validation
-    int m_passwordStrength; ///< Current password strength
-    bool m_passwordsMatch; ///< Current password match status
+
+    Ui::SignUpWindow *ui;                ///< Pointer to the UI components of SignUpWindow.
+    QSqlDatabase m_db;                   ///< Database connection reference.
+    PasswordManager *m_passwordManager;  ///< Manages password hashing and validation
+    int m_passwordStrength;              ///< Current password strength
+    bool m_passwordsMatch;               ///< Current password match status
 };
 
 #endif // SIGNUPWINDOW_H

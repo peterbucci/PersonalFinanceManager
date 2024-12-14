@@ -4,9 +4,14 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QToolTip>
+#include <QFocusEvent>
+#include <QCursor>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QTimer>
 #include "user.h"
 #include "userlogin.h"
-#include "PasswordManager.h"
 
 static int getAccessLevel(const QString &position) {
     QString pos = position.toLower();
@@ -32,7 +37,17 @@ SignUpWindow::SignUpWindow(QSqlDatabase db, QWidget *parent) :
     this->setWindowTitle("Sign Up");
 
     setupPasswordValidation();
+
+    // Install event filters on password fields to handle focus events
+    ui->passwordLineEdit->installEventFilter(this);
+    ui->confirmPasswordLineEdit->installEventFilter(this);
+
+    // Initialize custom tooltip via PasswordManager
+    m_passwordManager->initializeTooltip(this);
 }
+
+// Default Constructor
+SignUpWindow::SignUpWindow(){}
 
 SignUpWindow::~SignUpWindow()
 {
@@ -53,13 +68,23 @@ void SignUpWindow::setupPasswordValidation()
 void SignUpWindow::onPasswordStrengthChanged(int strength)
 {
     m_passwordStrength = strength;
-    // Handle UI update here
+
+    // If tooltip is visible on password fields, update it via PasswordManager
+    if (ui->passwordLineEdit->hasFocus() || ui->confirmPasswordLineEdit->hasFocus()) {
+        // Always position the tooltip below confirmPasswordLineEdit
+        m_passwordManager->showPasswordTooltip(ui->confirmPasswordLineEdit);
+    }
 }
 
 void SignUpWindow::onPasswordMatchStatusChanged(bool match)
 {
     m_passwordsMatch = match;
-    // Handle UI update here
+
+    // If tooltip is visible on password fields, update it via PasswordManager
+    if (ui->passwordLineEdit->hasFocus() || ui->confirmPasswordLineEdit->hasFocus()) {
+        // Always position the tooltip below confirmPasswordLineEdit
+        m_passwordManager->showPasswordTooltip(ui->confirmPasswordLineEdit);
+    }
 }
 
 void SignUpWindow::on_signUpPushButton_clicked()
@@ -114,6 +139,7 @@ void SignUpWindow::on_signUpPushButton_clicked()
     newUser.setUserId(userId);
     int accessLevel = getAccessLevel(newUser.getPosition());
 
+    // Create a new UserLogin object
     UserLogin newUserLogin(0, username, hashedPassword, accessLevel, newUser.getUserId());
 
     // Insert the new user login into the UserLogin table
@@ -138,10 +164,28 @@ void SignUpWindow::on_signUpPushButton_clicked()
 
 bool SignUpWindow::eventFilter(QObject *obj, QEvent *event)
 {
+    // Handle focus events for password fields to show/hide tooltips
+    if ((obj == ui->passwordLineEdit || obj == ui->confirmPasswordLineEdit)) {
+        if (event->type() == QEvent::FocusIn) {
+            // Always position the tooltip below confirmPasswordLineEdit
+            m_passwordManager->showPasswordTooltip(ui->confirmPasswordLineEdit);
+        }
+        else if (event->type() == QEvent::FocusOut) {
+            // Delay hiding to allow focus to move to the other password field if applicable
+            QTimer::singleShot(100, this, [this]() {
+                if (!ui->passwordLineEdit->hasFocus() && !ui->confirmPasswordLineEdit->hasFocus()) {
+                    m_passwordManager->hidePasswordTooltip();
+                }
+            });
+        }
+    }
+
+    // Handle mouse events for logInLink
     if (obj == ui->logInLink && event->type() == QEvent::MouseButtonRelease) {
         emit showLogin();
         return true;
     }
+
     return QWidget::eventFilter(obj, event);
 }
 
@@ -155,4 +199,5 @@ void SignUpWindow::resetUI()
     ui->positionComboBox->setCurrentIndex(0);
     m_passwordStrength = 0;
     m_passwordsMatch = false;
+    m_passwordManager->hidePasswordTooltip();
 }

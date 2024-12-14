@@ -1,7 +1,12 @@
 #include "Settings.h"
+#include "qtimer.h"
 #include "ui_settings.h"
 #include <QMessageBox>
 #include "PasswordManager.h"
+
+// Unicode characters for check and cross
+const QString CHECK_MARK = "&#10004;"; // ✔
+const QString CROSS_MARK = "&#10006;"; // ✖
 
 Settings::Settings(QWidget *parent)
     : QWidget(parent)
@@ -22,6 +27,13 @@ Settings::Settings(QWidget *parent)
     connect(ui->cancelPushButton, &QPushButton::clicked, this, &Settings::onCancelClicked);
 
     setupPasswordValidation();
+
+    // Install event filters on password fields to handle focus events
+    ui->passwordLineEdit->installEventFilter(this);
+    ui->confirmPasswordLineEdit->installEventFilter(this);
+
+    // Initialize custom tooltip via PasswordManager
+    m_passwordManager->initializeTooltip(this);
 }
 
 Settings::~Settings()
@@ -43,13 +55,23 @@ void Settings::setupPasswordValidation()
 void Settings::onPasswordStrengthChanged(int strength)
 {
     m_passwordStrength = strength;
-    // Handle UI (e.g., update a progress bar)
+
+    // If tooltip is visible on password fields, update it via PasswordManager
+    if (ui->passwordLineEdit->hasFocus() || ui->confirmPasswordLineEdit->hasFocus()) {
+        // Always position the tooltip below confirmPasswordLineEdit
+        m_passwordManager->showPasswordTooltip(ui->confirmPasswordLineEdit);
+    }
 }
 
 void Settings::onPasswordMatchStatusChanged(bool match)
 {
     m_passwordsMatch = match;
-    // Handle UI update (e.g., display a checkmark)
+
+    // If tooltip is visible on password fields, update it via PasswordManager
+    if (ui->passwordLineEdit->hasFocus() || ui->confirmPasswordLineEdit->hasFocus()) {
+        // Always position the tooltip below confirmPasswordLineEdit
+        m_passwordManager->showPasswordTooltip(ui->confirmPasswordLineEdit);
+    }
 }
 
 void Settings::setUserData(const QString &username,
@@ -129,4 +151,26 @@ void Settings::resetUI()
     ui->positionComboBox->setCurrentIndex(0);
     m_passwordStrength = 0;
     m_passwordsMatch = false;
+    m_passwordManager->hidePasswordTooltip();
+}
+
+bool Settings::eventFilter(QObject *obj, QEvent *event)
+{
+    // Handle focus events for password fields to show/hide tooltips
+    if ((obj == ui->passwordLineEdit || obj == ui->confirmPasswordLineEdit)) {
+        if (event->type() == QEvent::FocusIn) {
+            // Always position the tooltip below confirmPasswordLineEdit
+            m_passwordManager->showPasswordTooltip(ui->confirmPasswordLineEdit);
+        }
+        else if (event->type() == QEvent::FocusOut) {
+            // Delay hiding to allow focus to move to the other password field if applicable
+            QTimer::singleShot(100, this, [this]() {
+                if (!ui->passwordLineEdit->hasFocus() && !ui->confirmPasswordLineEdit->hasFocus()) {
+                    m_passwordManager->hidePasswordTooltip();
+                }
+            });
+        }
+    }
+
+    return QWidget::eventFilter(obj, event);
 }

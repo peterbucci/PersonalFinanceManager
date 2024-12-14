@@ -135,10 +135,10 @@ void TransactionForm::resetUI()
     ui->categoryComboBox->setCurrentIndex(0);
     ui->subcategoryLineEdit->clear();
     ui->amountLineEdit->clear();
-    ui->incomeRadioButton->setChecked(false);
+    ui->incomeRadioButton->setChecked(true);
     ui->expenseRadioButton->setChecked(false);
     ui->taxWithheldCheckBox->setChecked(false);
-    ui->taxWithheldCheckBox->setEnabled(false);
+    ui->taxWithheldCheckBox->setEnabled(true);
     ui->taxAmountLineEdit->clear();
     ui->taxAmountLineEdit->setEnabled(false);
     ui->errorLabel->clear();

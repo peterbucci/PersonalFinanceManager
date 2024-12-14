@@ -268,10 +268,10 @@ void GraphView::applyFiltering()
         }
     }
 
-    setData(dataPoints, minY, maxY);
+    setData(dataPoints, maxY);
 }
 
-void GraphView::setData(const QVector<QPointF> &dataPoints, double minY, double maxY)
+void GraphView::setData(const QVector<QPointF> &dataPoints, double maxY)
 {
     // Clear existing data
     incomeLineSeries->clear();

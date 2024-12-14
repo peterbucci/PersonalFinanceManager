@@ -82,11 +82,20 @@ private slots:
      */
     void onPasswordMatchStatusChanged(bool match);
 
+protected:
+    /**
+     * @brief Overrides the event filter to handle specific events.
+     * @param obj The object where the event originated.
+     * @param event The event to be filtered.
+     * @return true if the event is handled, false otherwise.
+     */
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 private:
-    Ui::Settings *ui; ///< Pointer to the UI components of Settings.
+    Ui::Settings *ui;                   ///< Pointer to the UI components of Settings.
     PasswordManager *m_passwordManager; ///< Manages password hashing and validation
-    int m_passwordStrength; ///< Current password strength
-    bool m_passwordsMatch; ///< Current password match status
+    int m_passwordStrength;             ///< Current password strength
+    bool m_passwordsMatch;              ///< Current password match status
 
     /**
      * @brief Sets up connections for password validation.
