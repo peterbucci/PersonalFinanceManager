@@ -1,7 +1,7 @@
 
 # Personal Finance Manager
 
-## Latest Updates (As of December 12, 2024)
+## Latest Updates (As of December 14, 2024)
 
 - **Password Security Enhancements:**
   - **Password Hashing:**
@@ -18,6 +18,16 @@
 
 - **UI Reset Functionality:**
   - **`resetUI` Methods:** Added `resetUI` methods to all UI classes (Log In, Sign Up, View Transactions, View Graph, Add Transaction, and Settings). These methods reset the UI back to default when navigating away from the screen, ensuring a consistent user experience.
+<<<<<<< HEAD
+=======
+
+- **User Interface Enhancements:**
+  - **Login & Sign Up Screens:** Users can create new accounts, log in with existing credentials, and recover passwords if forgotten.
+  - **View Transactions Screen:** The default view after logging in. Users can see a comprehensive list of their transactions.
+  - **Add Transaction Form:** A dedicated form that allows adding new income or expense transactions with optional tax withholding.
+  - **View Graph Screen (Qt Charts):** A GraphView is implemented to visualize income and expense trends over time, with category and subcategory filters.
+  - **Settings Screen:** Users can update their account details (username, password, name, and position).
+>>>>>>> d5b2a6349ba91a635a18a03f4ed5e2fc6efb1a93
 
 ---
 
@@ -50,7 +60,10 @@ The Personal Finance Manager is a graphical budget and expense tracker designed 
 
 - **User Accounts & Authentication:**
   - Full sign-up, login, and logout processes supported.
+<<<<<<< HEAD
   - Passwords are securely hashed using `QCryptographicHash` and managed via `PasswordManager`.
+=======
+>>>>>>> d5b2a6349ba91a635a18a03f4ed5e2fc6efb1a93
   - Credentials and user details are stored securely in a SQLite database.
 
 - **Transaction Management:**
@@ -63,7 +76,10 @@ The Personal Finance Manager is a graphical budget and expense tracker designed 
 
 - **Settings & Profile Management:**
   - Users can update their username, password, and personal details (first name, last name, position).
+<<<<<<< HEAD
   - Enhanced password validation and secure password handling.
+=======
+>>>>>>> d5b2a6349ba91a635a18a03f4ed5e2fc6efb1a93
 
 ### What's Not Working
 
@@ -212,5 +228,3 @@ The project satisfies the following requirements:
 
 6. **Logging Out:**
    - Users can log out to return to the login screen.
-
----
