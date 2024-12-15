@@ -1,213 +1,208 @@
-
 # Personal Finance Manager
-
-## Latest Updates (As of December 14, 2024)
-
-- **Password Security Enhancements:**
-  - **Password Hashing:**
-    - Implemented password hashing using `#include <QCryptographicHash>`.
-    - Introduced `PasswordManager.h` and `PasswordManager.cpp` to handle password hashing and validation logic.
-    - All passwords are now securely hashed before being stored in the database.
-  - **Password Validation:**
-    - Added robust password and confirm password validation in both the **Settings** and **Sign-Up** pages.
-    - Password strength validation ensures users create strong passwords.
-    - Confirm Password field must match the entered Password before allowing updates or registration.
-
-- **Dashboard Removed:**
-  - The main dashboard has been removed for now. After logging in, the default view is now the **View Transactions** screen.
-
-- **UI Reset Functionality:**
-  - **`resetUI` Methods:** Added `resetUI` methods to all UI classes (Log In, Sign Up, View Transactions, View Graph, Add Transaction, and Settings). These methods reset the UI back to default when navigating away from the screen, ensuring a consistent user experience.
----
 
 ## Table of Contents
 
-- [Project Overview](#project-overview)
-- [Current Status](#current-status)
-  - [What's Working](#whats-working)
-  - [What's Not Working](#whats-not-working)
-  - [Known Issues](#known-issues)
-- [Timeline to Completion](#timeline-to-completion)
-- [Project Requirements](#project-requirements)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
+- [Overview](#overview)
+- [Installation and Setup](#installation-and-setup)
+  - [System Requirements](#system-requirements)
+  - [Getting the Source Code](#getting-the-source-code)
   - [Building the Project](#building-the-project)
+    - [Using Qt Creator and QMake (Recommended)](#using-qt-creator-and-qmake-recommended)
+    - [Using Terminal and CMake](#using-terminal-and-cmake)
   - [Running the Application](#running-the-application)
 - [Usage](#usage)
+  - [Main Features](#main-features)
+  - [Basic Navigation](#basic-navigation)
+  - [Adding Transactions](#adding-transactions)
+  - [Viewing & Filtering Transactions](#viewing--filtering-transactions)
+  - [Viewing Graphs](#viewing-graphs)
+  - [Changing Settings](#changing-settings)
+- [Code Structure](#code-structure)
+  - [Key Components](#key-components)
+- [Known Limitations](#known-limitations)
+- [License](#license)
+- [Author](#author)
+
+## Overview
+
+The **Personal Finance Manager** application is a desktop tool for managing personal finances. It allows users to:
+
+- Create user accounts and securely log in.
+- Record income and expense transactions.
+- View transaction histories and running balances.
+- Filter transactions by category and subcategory.
+- Visualize financial data in graphs.
+- Update personal details and credentials.
+
+This application uses the **Qt framework** for its graphical interface and **SQLite** for data storage.
 
 ---
 
-## Project Overview
+## Installation and Setup
 
-The Personal Finance Manager is a graphical budget and expense tracker designed to help users manage their personal finances effectively. The application supports multiple user accounts, secure login/logout, and provides a platform for recording and analyzing financial data. Users can track their incomes, expenses, and see visual summaries through charts.
+### System Requirements
 
----
+**Operating System:**
+- Windows, macOS, or Linux
 
-## Current Status
+**Software Requirements:**
+- **Qt Framework:** Qt 5 or Qt 6 (including Core, Widgets, Charts, and SQL modules)
+- **C++ Compiler:** A C++17 compliant compiler (e.g., GCC, Clang, MSVC)
+- **SQLite:** Comes included with Qt
+- **CMake (optional):** If you prefer a CMake-based build
 
-### What's Working
+### Getting the Source Code
 
-- **User Accounts & Authentication:**
-  - Full sign-up, login, and logout processes supported.
-  - Passwords are securely hashed using `QCryptographicHash` and managed via `PasswordManager`.
-  - Credentials and user details are stored securely in a SQLite database.
+Clone the repository using Git:
 
-- **Transaction Management:**
-  - Users can add income and expense transactions.
-  - Each transaction is recorded with Date, Category, Subcategory, and Amount.
-
-- **Data Visualization:**
-  - Integrated Qt Charts to display income and expense trends over time.
-  - Graph filtering by category and subcategory supported.
-
-- **Settings & Profile Management:**
-  - Users can update their username, password, and personal details (first name, last name, position).
-  - Enhanced password validation and secure password handling.
-
-### What's Not Working
-
-- **Editing/Deleting Transactions:**
-  - Currently, transactions can be added but not edited or deleted.
-  - Future updates will address transaction modification and removal.
-
-- **Advanced Validation & Error Handling:**
-  - Input validation and error feedback can be improved.
-  - More robust error handling for database operations is still needed.
-
-### Known Issues
-
-- **Limited Testing:**
-  - Comprehensive testing and debugging are still in progress.
-  - Edge cases and exceptional inputs may not be handled gracefully yet.
-
----
-
-## Timeline to Completion
-
-**Coming Soon:**
-
-- Implement transaction editing and deletion.
-- Enhance input validation and error handling.
-- Refine UI/UX.
-
----
-
-## Project Requirements
-
-The project satisfies the following requirements:
-
-1. **Income and Expense Tracking:**
-   - Users can add multiple income and expense entries.
-   - Optional tax withholding supported for income entries.
-
-2. **Balance Sheet Display:**
-   - The View Transactions screen shows transactions in a table with running balances.
-
-3. **Category Filtering:**
-   - Transactions can be filtered by category and subcategory.
-   - Summarized daily totals visible in both tables and charts.
-
-4. **Data Visualization:**
-   - Qt Charts integrated for visualizing financial data over time.
-   - Users can view separate income and expense trend lines.
-
-5. **Database Storage (SQLite):**
-   - User and transaction data stored in a relational database.
-   - Secure and persistent data handling.
-
-6. **User Authentication:**
-   - Full sign-up and login process integrated.
-   - Passwords are securely hashed using `QCryptographicHash` and managed via `PasswordManager`.
-
-7. **Documentation:**
-   - Code documentation improved with user and installation instructions.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **Development Environment:**
-  - **Qt Framework**: Qt 5 or Qt 6 (including Core, Widgets, Charts, and SQL modules).
-  - **C++ Compiler**: A C++17 compliant compiler (e.g., GCC, Clang, MSVC).
-  - **SQLite**: Included by default with Qt.
-  - **CMake** (optional): If you prefer building with CMake.
+```bash
+# Using Terminal
+git clone https://github.com/peterbucci/PersonalFinanceManager.git
+cd PersonalFinanceManager
+```
 
 ### Building the Project
 
-1. **Clone the Repository:**
+#### Using Qt Creator and QMake (Recommended)
+
+1. **Open Project:**
+   - Start Qt Creator and open the `.pro` file in the project directory.
+
+2. **Configure & Build:**
+   - From the menu bar, select **Build** > **Build Project "PersonalFinanceManager"**.
+
+#### Using Terminal and CMake
+
+1. **Setting Up the Build Environment:**
    ```bash
-   git clone https://github.com/peterbucci/PersonalFinanceManager.git
-   cd PersonalFinanceManager
+   mkdir build && cd build
+   cmake ..
    ```
 
-2. **Open the Project in Qt Creator:**
-   - Launch **Qt Creator**.
-   - Open the `.pro` file or `CMakeLists.txt` file from the project root directory.
-
-3. **Configure the Project:**
-   - If using **qmake**:
-     - In Qt Creator, configure the project using `qmake`.
-   - If using **CMake**:
-     ```bash
-     mkdir build
-     cd build
-     cmake ..
-     ```
-
-4. **Build the Project:**
-   - In Qt Creator, click the **Build** button.
-   - Or if using the terminal with **CMake**:
+2. **Build:**
+   - **macOS/Linux/Unix-like Environments (e.g., Git Bash):**
      ```bash
      make
      ```
+   - **Windows:**
+     ```bash
+     cmake --build .
+     ```
+
+**Result:** After a successful build, you’ll have an executable in the appropriate build directory (e.g., `./build/Desktop-Debug/PersonalFinanceManager`).
 
 ### Running the Application
 
-1. **Set Up the Database** (if not already created):
-   - The application will create an `app.db` file in the project directory if it doesn't exist.
-   - Ensure the application has write permissions for the project directory.
+1. **Initialize the Database:**
+   - On the first run, the application creates an `app.db` file in the project’s build directory. Ensure the application has permission to write to this location.
 
-2. **Run the Application:**
-   - **From Qt Creator**:
-     - Click the **Run** button.
-   - **From the Terminal**:
+2. **Launch the Application:**
+   - **From Qt Creator:**
+     1. On the left sidebar, click the **Kit Selector** (Monitor icon).
+     2. Select a Build Configuration:
+        - **Debug:** Compiles with debug symbols for troubleshooting.
+        - **Profile:** Compiles with profiling tools for performance analysis.
+        - **Release:** Compiles with optimizations for performance.
+     3. Click the **Run Command** (Green Arrow) to launch the app.
+
+   - **From the Terminal:**
      ```bash
+     # macOS/Linux
      ./PersonalFinanceManager
+     
+     # Windows
+     PersonalFinanceManager.exe
      ```
 
-3. **Login or Sign Up**:
-   - If no users exist, sign up to create a new account.
-   - After logging in, you will be taken to the **View Transactions** screen by default.
+3. **Login or Sign Up:**
+   - If no accounts exist, select **Sign Up** to create a new user. Otherwise, log in.
 
 ---
 
-# Usage
+## Usage
 
-1. **User Registration & Login:**
-   - Run the application and create a new user account.
-   - Navigate to the Sign-up page and create a new account.
-   - Log in using your credentials to access the **View Transactions** screen.
+### Main Features
 
-2. **Navigating the Application:**
-   - Use the navigation combo box to move between the following screens:
-     - **View Transactions**
-     - **View Graph**
-     - **Add Transaction**
-     - **Settings**
-     - **Logout**
+- **User Accounts:** Create an account, log in, and log out.
+- **Secure Password Storage:** All passwords are hashed before being stored.
+- **Transaction Management:** Add income and expense transactions.
+- **View Transactions:** See all transactions, filter by category/subcategory, and view running balances.
+- **Data Visualization:** Display income or expenses over time using line graphs.
+- **Settings:** Update user details and change passwords.
 
-3. **Adding Transactions:**
-   - Open the transaction form from the navigation menu.
-   - Enter details and save. Your transaction is recorded in the database.
+### Basic Navigation
 
-4. **Filtering & Viewing Data:**
-   - Use the **View Transactions** or **View Graph** screens to filter by category and subcategory.
-   - Analyze trends over time via charts.
+After logging in, you are placed on the **View Transactions** screen. Use the navigation combo box at the top to switch between pages:
 
-5. **Updating Profile:**
-   - In the **Settings** page, update your username, password, and personal details as needed.
+- **View Transactions:** Shows all your recorded transactions.
+- **View Graphs:** Displays filtered financial data over time.
+- **Add Transaction:** Add a new income or expense entry.
+- **Settings:** Update username, password, and personal details.
+- **Logout:** Exit your account and return to the login screen.
 
-6. **Logging Out:**
-   - Users can log out to return to the login screen.
+### Adding Transactions
+
+1. Go to **Add Transaction**.
+2. Select the date, category, and optionally a subcategory.
+3. Enter the amount.
+4. Choose **Income** or **Expense**. If it’s an income and involves taxes, check the withholding option and enter the tax amount.
+5. Click **Save**. The transaction is recorded in the database.
+
+### Viewing & Filtering Transactions
+
+1. Go to **View Transactions**.
+2. Click **Show Options** to filter results.
+3. Choose a category and/or type a subcategory to narrow the list.
+4. The table updates automatically to display filtered transactions.
+5. If no filters are selected, you can see running balances per transaction line. With filters, a total row shows the sum at the bottom.
+
+### Viewing Graphs
+
+1. Go to **View Graphs**.
+2. Click **Show Options** to filter by category or subcategory.
+3. Choose **Expenses** or **Income** to display the corresponding data line.
+4. The graph updates to show trends over time.
+
+### Changing Settings
+
+1. Go to **Settings**.
+2. Update your username and personal details.
+3. Change your password (if desired).
+4. Click **Save**.
+
+---
+
+## Code Structure
+
+### Key Components
+
+- **MainWindow:** Handles navigation and coordinates the various screens.
+- **LoginWindow & SignUpWindow:** Manage user authentication and account creation.
+- **ViewTransactions:** Displays a table of transactions and applies filters.
+- **GraphView:** Shows transactions as a line graph with filtering options.
+- **TransactionForm:** Allows adding new income or expense entries.
+- **Settings:** Lets users update account details and passwords.
+- **PasswordManager:** Handles password hashing and validation.
+- **User & UserLogin:** Represent user and login details.
+- **Transaction & Ledger:** Store and manage financial transactions.
+
+**Database:**
+- The SQLite database `app.db` is automatically created and used for storing user credentials and transaction data.
+
+---
+
+## Known Limitations
+
+- **No Transaction Editing/Deletion:** Currently, you can only add transactions. Editing or removing existing transactions will be implemented later.
+
+---
+
+### License
+
+[Insert License Here]
+
+---
+
+### Author
+
+[Peter Bucci](https://github.com/peterbucci)

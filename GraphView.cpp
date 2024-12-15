@@ -7,8 +7,8 @@
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QLegendMarker>
 #include <QMouseEvent>
-#include <QToolTip>
 #include <QCursor>
+#include <QPen>
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -23,6 +23,8 @@ GraphView::GraphView(QWidget *parent)
     , expenseScatterSeries(new QScatterSeries())
     , axisX(new QDateTimeAxis())
     , axisY(new QValueAxis())
+    , tooltipVisible(false)
+    , chartTooltip(new QGraphicsSimpleTextItem(chart))
 {
     ui->setupUi(this);
 
@@ -42,21 +44,21 @@ GraphView::GraphView(QWidget *parent)
 
     // Initialize the line series
     incomeLineSeries->setName("Income");
-    incomeLineSeries->setColor(Qt::blue);
+    incomeLineSeries->setPen(QPen(Qt::blue, 3));
 
     expenseLineSeries->setName("Expenses");
-    expenseLineSeries->setColor(Qt::red);
+    expenseLineSeries->setPen(QPen(Qt::red, 3));
 
     // Initialize the scatter series
     incomeScatterSeries->setName("Income Points");
     incomeScatterSeries->setColor(Qt::blue);
     incomeScatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    incomeScatterSeries->setMarkerSize(8.0);
+    incomeScatterSeries->setMarkerSize(12.0);
 
     expenseScatterSeries->setName("Expense Points");
     expenseScatterSeries->setColor(Qt::red);
     expenseScatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    expenseScatterSeries->setMarkerSize(8.0);
+    expenseScatterSeries->setMarkerSize(12.0);
 
     // Add series to the chart
     chart->addSeries(incomeLineSeries);
@@ -64,8 +66,8 @@ GraphView::GraphView(QWidget *parent)
     chart->addSeries(incomeScatterSeries);
     chart->addSeries(expenseScatterSeries);
 
-    // Initially hide scatter series; visibility controlled based on selection
-    incomeScatterSeries->setVisible(true);  // Show by default if income is selected
+    // Initially show income and hide expense scatter series
+    incomeScatterSeries->setVisible(true);
     expenseScatterSeries->setVisible(false);
 
     // Hide the legend
@@ -74,17 +76,17 @@ GraphView::GraphView(QWidget *parent)
     // Default title
     chart->setTitle("All Transactions");
 
-    // Configure x-axis as QDateTimeAxis with rotated labels
+    // Configure x-axis
     axisX->setFormat("yyyy-MM-dd");
-    axisX->setLabelsAngle(-60); // Rotate labels by -60 degrees
+    axisX->setLabelsAngle(-60);
     chart->addAxis(axisX, Qt::AlignBottom);
     incomeLineSeries->attachAxis(axisX);
     expenseLineSeries->attachAxis(axisX);
     incomeScatterSeries->attachAxis(axisX);
     expenseScatterSeries->attachAxis(axisX);
 
-    // Configure y-axis as QValueAxis
-    axisY->setLabelFormat("$%.2f"); // Set label format to display currency
+    // Configure y-axis
+    axisY->setLabelFormat("$%.2f");
     chart->addAxis(axisY, Qt::AlignLeft);
     incomeLineSeries->attachAxis(axisY);
     expenseLineSeries->attachAxis(axisY);
@@ -97,21 +99,32 @@ GraphView::GraphView(QWidget *parent)
     ui->chartWidget->setChart(chart);
     ui->chartWidget->setRenderHint(QPainter::Antialiasing);
 
-    // Hide options group box by default
+    // Hide options by default
     ui->optionsGroupBox->setVisible(false);
 
     // Make label clickable
     ui->label->installEventFilter(this);
 
-    // Connect signals to update graph when filters or transaction type change
+    // Connect signals to update graph on filter changes
     connect(ui->categoryComboBox, &QComboBox::currentTextChanged, this, &GraphView::updateGraphFilters);
     connect(ui->subCategoryLneEdit, &QLineEdit::textChanged, this, &GraphView::updateGraphFilters);
     connect(ui->incomeRadioButton, &QRadioButton::toggled, this, &GraphView::updateGraphFilters);
     connect(ui->expensesRadioButton, &QRadioButton::toggled, this, &GraphView::updateGraphFilters);
 
-    // Connect the hovered signals to display tooltips with $xx.xx format
+    // Connect hovered signals
     connect(incomeScatterSeries, &QScatterSeries::hovered, this, &GraphView::handleScatterHover);
     connect(expenseScatterSeries, &QScatterSeries::hovered, this, &GraphView::handleScatterHover);
+
+    // Setup the tooltipHideTimer
+    tooltipHideTimer.setSingleShot(true);
+    connect(&tooltipHideTimer, &QTimer::timeout, this, &GraphView::hideTooltip);
+
+    // Configure the custom tooltip appearance
+    chartTooltip->setZValue(11); // Ensure it appears on top of chart elements
+    chartTooltip->hide();        // Initially hidden
+    QFont f = chartTooltip->font();
+    f.setBold(true);
+    chartTooltip->setFont(f);
 
     currentCategoryFilter = "";
     currentSubCategoryFilter = "";
@@ -133,16 +146,39 @@ bool GraphView::eventFilter(QObject *obj, QEvent *event)
 }
 
 void GraphView::handleScatterHover(const QPointF &point, bool state) {
-    if (state) { // Mouse entered a point
+    if (state) {
+        // Stop any pending hide actions since we're hovering again
+        tooltipHideTimer.stop();
+
+        // Show the tooltip
         chart->setCursor(Qt::PointingHandCursor);
         QDateTime date = QDateTime::fromMSecsSinceEpoch(static_cast<qint64>(point.x()));
         QString tooltipText = QString("Date: %1\nAmount: $%2")
                                   .arg(date.toString("yyyy-MM-dd"))
-                                  .arg(point.y(), 0, 'f', 2); // Format to two decimal places
-        QToolTip::showText(QCursor::pos(), tooltipText, ui->chartWidget);
-    } else { // Mouse left the point
+                                  .arg(point.y(), 0, 'f', 2);
+
+        chartTooltip->setText(tooltipText);
+        chartTooltip->show();
+
+        // Position the tooltip near the hovered point
+        QPointF scenePos = chart->mapToPosition(point);
+        // Adjust offset so tooltip doesn't cover the point
+        scenePos.setY(scenePos.y() - 40);
+        chartTooltip->setPos(scenePos);
+
+        tooltipVisible = true;
+    } else {
+        // Hover ended, start a timer before hiding the tooltip
+        tooltipHideTimer.start(200);
+    }
+}
+
+void GraphView::hideTooltip() {
+    // Called after the timer times out, indicating the mouse truly left
+    if (tooltipVisible) {
         chart->setCursor(Qt::ArrowCursor);
-        QToolTip::hideText();
+        chartTooltip->hide();
+        tooltipVisible = false;
     }
 }
 
@@ -183,31 +219,31 @@ void GraphView::applyFiltering()
     // Initialize daily totals
     std::map<QString, double> dailyTotals;
 
-    // Initialize dataPoints with reserve if possible
+    // Prepare for data points
     QVector<QPointF> dataPoints;
     dataPoints.reserve(allTransactions.size());
 
-    // Variables to track min and max for setData
+    // Track min and max Y
     double minY = std::numeric_limits<double>::max();
     double maxY = std::numeric_limits<double>::lowest();
 
-    // Filter and aggregate in a single pass
+    // Filter and aggregate
     for (const auto &t : allTransactions) {
-        // Apply category filter
+        // Category filter
         if (!currentCategoryFilter.isEmpty()) {
             QString category = QString::fromStdString(t.getCategory());
             if (category != currentCategoryFilter)
                 continue;
         }
 
-        // Apply subcategory filter
+        // Subcategory filter
         if (!currentSubCategoryFilter.isEmpty()) {
             QString subcategory = QString::fromStdString(t.getSubcategory());
             if (!subcategory.contains(currentSubCategoryFilter, Qt::CaseInsensitive))
                 continue;
         }
 
-        // Determine transaction type
+        // Transaction type filter
         bool isIncome = t.isIncomeTransaction();
         if (!((showIncome && isIncome) || (showExpenses && !isIncome))) {
             continue;
@@ -218,7 +254,7 @@ void GraphView::applyFiltering()
         dailyTotals[dateKey] += t.calculateNetAmount();
     }
 
-    // Convert dailyTotals into dataPoints and track min/max
+    // Convert dailyTotals to dataPoints
     for (const auto &entry : dailyTotals) {
         QDateTime dt = QDateTime::fromString(entry.first, "yyyy-MM-dd");
         if (!dt.isValid()) continue;
@@ -227,14 +263,12 @@ void GraphView::applyFiltering()
         double val = entry.second;
         if (val > 0) {
             dataPoints.append(QPointF(ms, val));
-
-            // Update min and max Y
             if (val < minY) minY = val;
             if (val > maxY) maxY = val;
         }
     }
 
-    // Sort points by x (date) ascending
+    // Sort by date
     std::sort(dataPoints.begin(), dataPoints.end(), [](const QPointF &a, const QPointF &b){
         return a.x() < b.x();
     });
@@ -248,7 +282,7 @@ void GraphView::applyFiltering()
     }
     chart->setTitle(title);
 
-    // Set the Tick Count on the X-Axis
+    // Configure axes
     int uniqueDateCount = static_cast<int>(dailyTotals.size());
     uniqueDateCount = std::max(uniqueDateCount, 2);
     axisX->setTickCount(uniqueDateCount);
@@ -301,7 +335,6 @@ void GraphView::setData(const QVector<QPointF> &dataPoints, double maxY)
         return;
     }
 
-    // Calculate range and padding
     double range = maxY;
     if (range < 0) range = 0;
     double padding = range * 0.1;
@@ -317,7 +350,6 @@ void GraphView::setData(const QVector<QPointF> &dataPoints, double maxY)
 
     axisY->setRange(0, roundedMax);
     axisY->setLabelFormat("$%.2f");
-
     chart->update();
 }
 

@@ -2,6 +2,8 @@ QT += core gui widgets charts sql
 
 CONFIG += c++17
 
+TARGET = PersonalFinanceManager
+
 SOURCES += \
     GraphView.cpp \
     Ledger.cpp \

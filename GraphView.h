@@ -10,6 +10,8 @@
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QDateTimeAxis>
 #include <QtCharts/QScatterSeries>
+#include <QTimer>
+#include <QGraphicsSimpleTextItem>
 #include "User.h"
 #include "Transaction.h"
 
@@ -72,6 +74,11 @@ private slots:
      */
     void updateGraphFilters();
 
+    /**
+     * @brief Hides the custom tooltip after a delay when the mouse leaves the point.
+     */
+    void hideTooltip();
+
 private:
     Ui::GraphView *ui; ///< Pointer to the UI components of GraphView.
     QChart *chart; ///< Chart object representing the graph.
@@ -85,6 +92,9 @@ private:
     std::vector<Transaction> allTransactions; ///< All transactions associated with the current user.
     QString currentCategoryFilter; ///< Current category filter applied to the graph.
     QString currentSubCategoryFilter; ///< Current subcategory filter applied to the graph.
+    QTimer tooltipHideTimer;       ///< Timer to delay hiding the tooltip after hover ends.
+    bool tooltipVisible;           ///< Flag indicating if the tooltip is currently visible.
+    QGraphicsSimpleTextItem *chartTooltip; ///< The custom tooltip graphics item.
 
     /**
      * @brief Apply category/subcategory filtering to allTransactions and update the chart.
@@ -95,29 +105,18 @@ private:
     /**
      * @brief Updates the chart with the provided data points and adjusts the Y-axis range.
      *
-     * This function sets the data points for the chart based on either income or expense transactions.
-     * It updates the visible line and scatter series, configures the Y-axis range using the maximum y-value, and ensures the chart is properly scaled and rendered.
-     *
-     * @param dataPoints A QVector of QPointF representing the data points (either income or expense).
-     *                  Each QPointF contains the X (time in milliseconds since epoch) and Y (amount) coordinates.
-     * @param maxY       The maximum Y-value from the data points, used to calculate the upper bound of the Y-axis with padding.
+     * @param dataPoints A QVector of QPointF representing the data points.
+     * @param maxY       The maximum Y-value from the data points, used to calculate the upper bound.
      */
     void setData(const QVector<QPointF> &dataPoints, double maxY);
 
-
     /**
-         * @brief Handles hover events over scatter plot points to display tooltips.
-         *
-         * When the mouse hovers over a data point on the scatter plot, this function
-         * shows a tooltip displaying the date and amount associated with that point,
-         * and changes the cursor to a pointing hand. When the mouse leaves the point,
-         * it hides the tooltip and resets the cursor to the default arrow.
-         *
-         * @param point The QPointF representing the data point being hovered over.
-         * @param state True if the mouse is entering the hover state over the point, false if leaving.
-         */
+     * @brief Handles hover events over scatter plot points to display tooltips.
+     *
+     * @param point The QPointF representing the data point being hovered over.
+     * @param state True if the mouse enters hover state, false if leaving.
+     */
     void handleScatterHover(const QPointF &point, bool state);
-
 };
 
 #endif // GRAPHVIEW_H
